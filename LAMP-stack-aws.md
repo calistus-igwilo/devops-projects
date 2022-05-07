@@ -104,14 +104,14 @@ Apache on Ubuntu 20.04 has one server block enabled by default that is configure
   ```
 - Paste the configurations into the file
   ```
-  $\gt$VirtualHost *:80$\lt$
+  <VirtualHost *:80>
     ServerName projectlamp
     ServerAlias www.projectlamp
     ServerAdmin webmaster@localhost
     DocumentRoot /var/www/projectlamp
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
-  $<$VirtualHost$>$
+  </VirtualHost>
   ```
 - Save and exit
 - Use **a2ensite** command to enable the new virtual host
@@ -126,6 +126,7 @@ Apache on Ubuntu 20.04 has one server block enabled by default that is configure
   ```
   sudo apache2ctl configtest
   ```
+  ![Configtest](images/configtest.png "Configtest result")
 - Reload Apache
   ```
   sudo systemctl reload apache2
@@ -135,6 +136,44 @@ Apache on Ubuntu 20.04 has one server block enabled by default that is configure
   sudo echo 'Hello LAMP from hostname' $(curl -s http://169.254.169.254/latest/meta-data/public-hostname) 'with public IP' $(curl -s http://169.254.169.254/latest/meta-data/public-ipv4) > /var/www/projectlamp/index.html
   ```
 - Access the website on your browser
+
   ```
   https://public-ip-address:80
   ```
+
+  ![Website Image](images/website.png "Website Image")
+
+  ## Step 5 - Enable PHP
+
+  **index.html** always take loading precedence over **index.php** to change that behaviour, edit the **/etc/apache2/mods-enabled/dir.conf** file and change the loading order
+
+  ```
+  sudo vim /etc/apache2/mods-enabled/dir.conf
+  ```
+
+  ```
+  <IfModule mod_dir.c>
+        #Change this:
+        #DirectoryIndex index.html index.cgi index.pl index.php index.xhtml index.htm
+        #To this:
+        DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm
+  </IfModule>
+  ```
+
+  - Save and exit
+  - Reload Apache
+    ```
+    sudo systemctl reload apache2
+    ```
+  - Create a new file named **index.php** inside your custom web root folder
+    ```
+    vim /var/www/projectlamp/index.php
+    ```
+    - Add the following text, which is valid PHP code, inside the file
+    ```
+    <?php
+    phpinfo();
+    ```
+  - Save and exit
+  - Reload or refresh the page
+    ![phpinfo page](images/phpinfo.png "phpinfo page")
