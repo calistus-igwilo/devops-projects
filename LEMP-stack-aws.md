@@ -141,9 +141,11 @@ On Ubuntu 20.04, Nginx has one server block enabled by default and is configured
 
 - Save and exit
 - Activate the configuration by linking to the config file from Nginx\'s **sites-enabled** directory
+
   ```
   sudo ln -s /etc/nginx/sites-available/projectlemp /etc/nginx/sites-enabled/
   ```
+
   This will tell Nginx to use the configuration next time it is reloaded.
 
 - Check that the configuration file does not contain any errors
@@ -156,9 +158,11 @@ On Ubuntu 20.04, Nginx has one server block enabled by default and is configured
   sudo unlink /etc/nginx/sites-enabled/default
   ```
 - Reload Nginx
+
   ```
-  
+
   ```
+
 - Create an index file in the web directory
   ```
   sudo echo 'Hello LEMP from hostname' $(curl -s http://169.254.169.254/latest/meta-data/public-hostname) 'with public IP' $(curl -s http://169.254.169.254/latest/meta-data/public-ipv4) > /var/www/projectlemp/index.html
@@ -178,14 +182,122 @@ On Ubuntu 20.04, Nginx has one server block enabled by default and is configured
   ```
   sudo vim /var/www/projectlemp/info.php
   ```
-    - Add the following text, which is valid PHP code that will return information about the server.
-    ```
-    <?php
-    phpinfo();
-    ```
+
+  - Add the following text, which is valid PHP code that will return information about the server.
+
+  ```
+  <?php
+  phpinfo();
+  ```
+
   - Save and exit
   - Visit the webpage through the browser
     ```
     http://`server_domain_or_IP`/info.php
     ```
     ![phpinfo page](images/nginx-php.png "phpinfo page")
+
+## Retrieving data from MySQL database with PHP
+
+Create a test database (DB) with simple "To do list" and configure access to it, so the Nginx website would be able to query data from the DB and display it
+
+- Create a new user with the mysql_native_password authentication method in order to be able to connect to the MySQL database from PHP
+- Connect to the database
+
+```
+sudo mysql
+```
+
+![Connect to database as root user](images/mysql-prompt.png "connect to database")
+
+- Create a new database
+  ```
+  CREATE DATABASE example_database;
+  ```
+- Create a new user
+  ```
+  CREATE USER 'example_user'@'%' IDENTIFIED WITH mysql_native_password BY 'password';
+  ```
+- Grant the user permission over the example_database database
+  ```
+  GRANT ALL ON example_database.* TO 'example_user'@'%';
+  ```
+- Exit mysql shell
+  ```
+  exit
+  ```
+- Logon to mysql console using the new user credentials
+  ```
+  mysql -u example_user -p
+  ```
+  ![logon to mysql as new user](images/mysql-login.png "mysql new user login")
+- Confirm user has access to database
+
+  ```
+  SHOW DATABASES;
+  ```
+
+  ![Show Databases](images/show-database.png "Show Databases")
+
+- Create a test table called **todo_list**
+  ```
+  CREATE TABLE example_database.todo_list (
+    item_id INT AUTO_INCREMENT,
+    content VARCHAR(255),
+    PRIMARY KEY(item_id)
+  );
+  ```
+- Insert a few rows of content in the test table
+
+  ```
+  INSERT INTO example_database.todo_list (content) VALUES ("My first important item");
+  ```
+
+- Confirm that the data was successfully saved to the table
+
+  ```
+  SELECT * FROM example_database.todo_list;
+  ```
+
+  ![MySQL Select](images/mysql-select.png "MySQL SELECT")
+
+- Exit mysql console
+  ```
+  exit
+  ```
+- Create a PHP script that will connect to MySQL and query the contents
+
+  ```
+  vi /var/www/projectlemp/todo_list.php
+  ```
+
+  The following PHP script connects to the MySQL database and queries for the content of the todo_list table, displays the results in a list
+
+  Copy this content into the todo_list.php script
+
+  ```
+  <?php
+  $user = "example_user";
+  $password = "password";
+  $database = "example_database";
+  $table = "todo_list";
+
+  try {
+    $db = new PDO("mysql:host=localhost;dbname=$database", $user, $password);
+    echo "<h2>TODO</h2><ol>";
+  foreach($db->query("SELECT content FROM $table") as $row) {
+  echo "<li>" . $row['content'] . "</li>";
+  }
+  echo "</ol>";
+  } catch (PDOException $e) {
+    print "Error!: " . $e->getMessage() . "<br/>";
+    die();
+  }
+  ```
+
+- Save and quit
+- Access the page through the web browser
+  ```
+  http://<Public_domain_or_IP>/todo_list.php
+  ```
+  ![Todo list](images/todo-list.png "Todo List")
