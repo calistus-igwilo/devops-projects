@@ -407,8 +407,22 @@ The whole purpose of adding the proxy configuration in number 3 above is to make
   ```
   npm run dev
   ```
+  ![npn run dev](images/npn-run-dev.png "npn run dev")
+
   The app should open and start running on localhost:3000
   NOTE: Open port 3000 on the AWS EC2 security group to be able to access the service.
+- Access the React app through port 3000 on the public-ip-address
+  ```
+  http://public-ip-address:3000
+  ```
+  ![React App](images/react-app.png "React App")
+
+### Creating React Components
+
+  
+  
+
+  
 
 
 
