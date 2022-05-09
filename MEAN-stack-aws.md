@@ -359,4 +359,4 @@ Open TCP port 3300 in the Security tab of the AWS EC2 Instance.
   ```
   http://public-ip-address:3300
   ```
-  ![Books App webpage](images/books-app.png "Books App webpage")
+  ![Books App webpage](images/books-app-mean.png "Books App webpage")
