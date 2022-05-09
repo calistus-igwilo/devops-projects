@@ -62,13 +62,13 @@ Node.js is used here to set up the Express routes and AngularJS controllers.
 MongoDB stores data in flexible, JSON-like documents. Fields in a database can vary from document to document and data structure can be changed over time. In this application, we are adding book records to MongoDB that contain book name, isbn number, author, and number of pages.
 mages/WebConsole.gif
 
-  ```
-  sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
-  ```
+```
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
+```
 
-  ```
-  echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
-  ```
+```
+echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
+```
 
 - Install MongoDB
 
@@ -135,8 +135,8 @@ app.listen(app.get('port'), function() {
 });
 ```
 
-- # Step 3 -  Install Express and set up routes to the server
-Express will pass book information to and from the MongoDB database
+- # Step 3 - Install Express and set up routes to the server
+- Express will pass book information to and from the MongoDB database
 - Mongoose will establish a schema for the database to store data of the book register
   ```
   sudo npm install express mongoose
@@ -150,6 +150,7 @@ Express will pass book information to and from the MongoDB database
   vi routes.js
   ```
 - Copy and paste the code below into routes.js
+
 ```
 var Book = require('./models/book');
 module.exports = function(app) {
@@ -158,7 +159,7 @@ module.exports = function(app) {
       if ( err ) throw err;
       res.json(result);
     });
-  }); 
+  });
   app.post('/book', function(req, res) {
     var book = new Book( {
       name:req.body.name,
@@ -189,6 +190,7 @@ module.exports = function(app) {
   });
 };
 ```
+
 - In the **apps** folder, create a folder named **models**
   ```
   mkdir models && cd models
@@ -198,6 +200,7 @@ module.exports = function(app) {
   vi book.js
   ```
 - Copy and paste the code below into 'book.js'
+
 ```
 var mongoose = require('mongoose');
 var dbHost = 'mongodb://localhost:27017/test';
@@ -214,729 +217,146 @@ var Book = mongoose.model('Book', bookSchema);
 module.exports = mongoose.model('Book', bookSchema);
 ```
 
+## Step 4 - Access the routes with AngularJS
 
+AngularJS provides a web framework for creating dynamic views in web applications. AngularJS will be used to connect the web page with Express and perform actions on the book register.
 
-
+- Change the directory back to **Books**
   ```
-  npm install express
+  cd ../..
   ```
-- Create index.js file
+- Create a folder named **public**
   ```
-  touch index.js
+  mkdir public && cd public
   ```
-- Install the dotenv module
+- Add a file named **script.js**
   ```
-  npm install dotenv
+  vi script.js
   ```
-- Open the index.js file
-  ```
-  vi index.js
-  ```
-- Type the code below into it and save
-
-  ```
-  const express = require('express');
-  require('dotenv').config();
-
-  const app = express();
-
-  const port = process.env.PORT || 5000;
-
-  app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "\*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-  });
-
-  app.use((req, res, next) => {
-  res.send('Welcome to Express');
-  });
-
-  app.listen(port, () => {
-  console.log(`Server running on port ${port}`)
-  });
-  ```
-
-- Save and exit
-
-- Start the Server
-
-  ```
-  node index.js
-  ```
-
-  ![node index.js ](images/node-index.png "node index.js")
-
-- Open TCP port 5000 on the EC2 Security group
-  ![Open TCP port 5000](images/tcp-5000.png "Open TCP port 5000)
-
-- Access the website through port 5000
-
-  ```
-  http://<PublicIP-or-PublicDNS>:5000
-  ```
-
-  ![Website on NodeJS](images/website-node.png "Website on NodeJS")
-
-- ### Routes
-
-  There are three actions that our To-Do application needs to be able to do:
-
-  1.  Create a new task
-  2.  Display list of all tasks
-  3.  Delete a completed task
-      Each task will be associated with some particular endpoint and will use different standard HTTP request methods: POST, GET, DELETE.
-
-  Each task needs a route that will define various endpoints that the To-do app will depend on.
-
-- Create directory to hold routes
-  ```
-  mkdir routes
-  ```
-- Change directory to routes folder.
-  ```
-  cd routes
-  ```
-- Create api.js file
-  ```
-  touch api.js
-  ```
-- Open the api.js file
-  ```
-  vim api.js
-  ```
-- Copy the below code into the file
-
-  ```
-  const express = require ('express');
-  const router = express.Router();
-
-  router.get('/todos', (req, res, next) => {
-
-  });
-
-  router.post('/todos', (req, res, next) => {
-
-  });
-
-  router.delete('/todos/:id', (req, res, next) => {
-
-  })
-
-  module.exports = router;
-  ```
-
-### Models
-
-A model is at the heart of JavaScript based applications, and it is what makes it interactive.
-
-Models will be used to define the database schema . This is important so that we will be able to define the fields stored in each Mongodb document.
-
-The Schema is a blueprint of how the database will be constructed, including other data fields that may not be required to be stored in the database. These are known as virtual properties
-
-To create a Schema and a model, install mongoose which is a Node.js package that makes working with mongodb easier.
-
-- Change directory back to Todo folder with cd .. and install Mongoose
-  ```
-  npm install mongoose
-  ```
-- Create a new folder models :
-  ```
-  mkdir models
-  ```
-- Change directory into the newly created models folder with
-
-  ```
-  cd models
-  ```
-
-- Inside the models folder, create a todo.js file
-  ```
-  touch todo.js
-  ```
-- Open the file created with **vim todo.js** and paste the code below into the file
-
-  ```
-  const mongoose = require('mongoose');
-  const Schema = mongoose.Schema;
-
-  //create schema for todo
-  const TodoSchema = new Schema({
-  action: {
-  type: String,
-  required: [true, 'The todo text field is required']
-  }
-  })
-
-  //create model for todo
-  const Todo = mongoose.model('todo', TodoSchema);
-
-  module.exports = Todo;
-  ```
-
-- Save and quit
-- In Routes directory, open **api.js** with **vi api.js**, delete the code inside with **:%d** command and paste the code below into it. Save and exit
+- Copy and paste the Code below (controller configuration defined) into the **script.js file**.
 
 ```
-const express = require ('express');
-const router = express.Router();
-const Todo = require('../models/todo');
-
-router.get('/todos', (req, res, next) => {
-
-//this will return all the data, exposing only the id and action field to the client
-Todo.find({}, 'action')
-.then(data => res.json(data))
-.catch(next)
-});
-
-router.post('/todos', (req, res, next) => {
-if(req.body.action){
-Todo.create(req.body)
-.then(data => res.json(data))
-.catch(next)
-}else {
-res.json({
-error: "The input field is empty"
-})
-}
-});
-
-router.delete('/todos/:id', (req, res, next) => {
-Todo.findOneAndDelete({"_id": req.params.id})
-.then(data => res.json(data))
-.catch(next)
-})
-
-module.exports = router;
-```
-
-### MongoDB Database
-
-mLab provides MongoDB database as a service solution (DBaaS), so to make life easy, sign up for a shared clusters free account, which is ideal for this use case. https://www.mongodb.com/atlas-signup-from-mlab Follow the sign up process, select AWS as the cloud provider.
-![mLab](images/mlab01.png "mLab")
-
-Complete the "Get started" checklist. On Network settings, enable "allow access from anywhere"
-![Allow connection from anywhere](images/ip-anywhere.png "Allow connection from anywhere")
-
-- Create a MongoDB database and collection inside mLab
-  On the database tab, click on "Browse Collections"
-  ![mLab Browse Collections](images/browse-collect.png "mLab Browse Collections")
-
-  Choose the "Add my own data" option
-  ![mLab add my own data](images/add-data.png "mLab add my own data")
-
-- Create **.env** file in the **Todo** directory
-  ```
-  touch .env
-  vi .env
-  ```
-- Paste the connection string in the file
-
-  ```
-  DB = 'mongodb+srv://<username>:<password>@<network-address>/<dbname>?retryWrites=true&w=majority'
-  ```
-
-  Update **username**, **password**, **network-address** and **database** according to the database setup
-
-- Update the **index.js** to reflect the use of **.env** to enable Node.js connect to the database.
-
-```
-vi indext.js
-```
-
-- Delete previous contents and replace with
-
-```
-const express = require('express');
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-const routes = require('./routes/api');
-const path = require('path');
-require('dotenv').config();
-
-const app = express();
-
-const port = process.env.PORT || 5000;
-
-//connect to the database
-mongoose.connect(process.env.DB, { useNewUrlParser: true, useUnifiedTopology: true })
-.then(() => console.log(`Database connected successfully`))
-.catch(err => console.log(err));
-
-//since mongoose promise is depreciated, we overide it with node's promise
-mongoose.Promise = global.Promise;
-
-app.use((req, res, next) => {
-res.header("Access-Control-Allow-Origin", "\*");
-res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-next();
-});
-
-app.use(bodyParser.json());
-
-app.use('/api', routes);
-
-app.use((err, req, res, next) => {
-console.log(err);
-next();
-});
-
-app.listen(port, () => {
-console.log(`Server running on port ${port}`)
+var app = angular.module('myApp', []);
+app.controller('myCtrl', function($scope, $http) {
+  $http( {
+    method: 'GET',
+    url: '/book'
+  }).then(function successCallback(response) {
+    $scope.books = response.data;
+  }, function errorCallback(response) {
+    console.log('Error: ' + response);
+  });
+  $scope.del_book = function(book) {
+    $http( {
+      method: 'DELETE',
+      url: '/book/:isbn',
+      params: {'isbn': book.isbn}
+    }).then(function successCallback(response) {
+      console.log(response);
+    }, function errorCallback(response) {
+      console.log('Error: ' + response);
+    });
+  };
+  $scope.add_book = function() {
+    var body = '{ "name": "' + $scope.Name +
+    '", "isbn": "' + $scope.Isbn +
+    '", "author": "' + $scope.Author +
+    '", "pages": "' + $scope.Pages + '" }';
+    $http({
+      method: 'POST',
+      url: '/book',
+      data: body
+    }).then(function successCallback(response) {
+      console.log(response);
+    }, function errorCallback(response) {
+      console.log('Error: ' + response);
+    });
+  };
 });
 ```
 
-- Start the node server
+- In **public** folder, create a file named **index.html**;
   ```
-  node index.js
+  vi index.html
   ```
-  ![DB Connected Successfully](images/db-connected.png "DB Connected Successfully")
-
-### Test Backend Code without Frontend using RESTful API
-
-- Open Postman, create a POST request to the API http://publicIP-or-PublicDNS:5000/api/todos. This request sends a new task to the To-Do list so the application could store it in the database.
-  ![Postman POST](images/api-post.png "Postman POST")
-
-- Create a GET request to the API on http://PublicIP-or-PublicDNS:5000/api/todos. This request retrieves all existing records from the To-do application
-  ![Postman GET](images/api-get.png "Postman GET")
-
-- Create a DELETE request to the API on http://PublicIP-or-PublicDNS:5000/api/todos. The DELETE request requires the record ID
-  ![Postman DELETE](images/api-delete.png "Postman DELETE")
-
-## Step 2 - Frontend Creation
-
-- Use the **create-react-app** command to scaffold the app, in the Todo directory
-  ```
-  npx create-react-app client
-  ```
-
-### Running React App
-
-- Install **concurrently** used to run more than one command simultaneously from the same terminal
-  ```
-  npm install concurrently --save-dev
-  ```
-- Install **nodemon**. used to run and monitor the server. If there is any change in the server code, nodemon will restart it automatically and load the new changes.
-  ```
-  npm install nodemon --save-dev
-  ```
-- In Todo folder open the **package.json** file. Change the highlighted part of the below screenshot and replace with the code below
-  ```
-  "scripts": {
-  "start": "node index.js",
-  "start-watch": "nodemon index.js",
-  "dev": "concurrently \"npm run start-watch\" \"cd client && npm start\""
-  },
-  ```
-  ![Package.Json](images/package-json.jpg "package.json")
-
-### Configure proxy in jason.package
-
-1. Change directory to 'client'
+- Cpoy and paste the code below into **index.html** file.
 
 ```
-cd client
+<!doctype html>
+<html ng-app="myApp" ng-controller="myCtrl">
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <script src="script.js"></script>
+  </head>
+  <body>
+    <div>
+      <table>
+        <tr>
+          <td>Name:</td>
+          <td><input type="text" ng-model="Name"></td>
+        </tr>
+        <tr>
+          <td>Isbn:</td>
+          <td><input type="text" ng-model="Isbn"></td>
+        </tr>
+        <tr>
+          <td>Author:</td>
+          <td><input type="text" ng-model="Author"></td>
+        </tr>
+        <tr>
+          <td>Pages:</td>
+          <td><input type="number" ng-model="Pages"></td>
+        </tr>
+      </table>
+      <button ng-click="add_book()">Add</button>
+    </div>
+    <hr>
+    <div>
+      <table>
+        <tr>
+          <th>Name</th>
+          <th>Isbn</th>
+          <th>Author</th>
+          <th>Pages</th>
+
+        </tr>
+        <tr ng-repeat="book in books">
+          <td>{{book.name}}</td>
+          <td>{{book.isbn}}</td>
+          <td>{{book.author}}</td>
+          <td>{{book.pages}}</td>
+
+          <td><input type="button" value="Delete" data-ng-click="del_book(book)"></td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
 ```
 
-2. Open the package.json file
-
-```
-vi package.json
-```
-
-3. Add the key value pair in the package.json file **"proxy": "http://localhost:5000"**.
-   The whole purpose of adding the proxy configuration in number 3 above is to make it possible to access the application directly from the browser by simply calling the server url like http://localhost:5000 rather than always including the entire path like http://localhost:5000/api/todos
-
-- In the **Todo** directory, run:
-
-  ```
-  npm run dev
-  ```
-
-  ![npn run dev](images/npn-run-dev.png "npn run dev")
-
-  The app should open and start running on localhost:3000
-  NOTE: Open port 3000 on the AWS EC2 security group to be able to access the service.
-
-- Access the React app through port 3000 on the public-ip-address
-  ```
-  http://public-ip-address:3000
-  ```
-  ![React App](images/react-app.png "React App")
-
-### Creating React Components
-
-The App will have two stateful components and one stateless component
-
-- From the Todo directory run
-  ```
-  cd client
-  ```
-- Change to the src directory
-  ```
-  cd src
-  ```
-- In the src directory create another directory called components
-  ```
-  mkdir components
-  ```
-- change to the components directory
-  ```
-  cd components
-  ```
-- In components directory create three files Input.js, ListTodo.js and Todo.js.
-  ```
-  touch Input.js ListTodo.js Todo.js
-  ```
-- Open Input.js file
-  ```
-  vi Input.js
-  ```
-- Copy and paste the codes below
-
-```
-import React, { Component } from 'react';
-import axios from 'axios';
-
-class Input extends Component {
-
-state = {
-action: ""
-}
-
-addTodo = () => {
-const task = {action: this.state.action}
-
-    if(task.action && task.action.length > 0){
-      axios.post('/api/todos', task)
-        .then(res => {
-          if(res.data){
-            this.props.getTodos();
-            this.setState({action: ""})
-          }
-        })
-        .catch(err => console.log(err))
-    }else {
-      console.log('input field required')
-    }
-
-}
-
-handleChange = (e) => {
-this.setState({
-action: e.target.value
-})
-}
-
-render() {
-let { action } = this.state;
-return (
-<div>
-<input type="text" onChange={this.handleChange} value={action} />
-<button onClick={this.addTodo}>add todo</button>
-</div>
-)
-}
-}
-
-export default Input
-```
-
-To make use of **Axios**, which is a Promise based HTTP client for the browser and node.js, cd into client directory client and run yarn add axios or npm install axios.
-
-- Go to the src folder
+- Change the directory back up to Books
   ```
   cd ..
   ```
-- Go to clients folder
+- Start the server
   ```
-  cd ..
+  node server.js
   ```
-- Install Axios
-  ``
-  npm install axios
+  ![node server.js](images/node-serverjs.png "node server.js")
 
-  ```
-
-  ```
-
-- Go to 'components' directory
-
-  ```
-  cd src/components
-  ```
-
-- Open the ListTodo.js file
+The server is now up and running via port 3300. Launch a separate Putty or SSH console to test what curl command returns locally.
 
 ```
-vi ListTodo.js
+curl -s http://localhost:3300
 ```
 
-- In the **ListTodo.js** copy and paste the codes below
+![curl localhost:3300](images/curl-localhost-2.png "curl localhost:3300")
 
-```
-import React from 'react';
+Open TCP port 3300 in the Security tab of the AWS EC2 Instance.
+![TCP port 3300](images/port-3000.png "TCP port 3300")
 
-const ListTodo = ({ todos, deleteTodo }) => {
-
-return (
-<ul>
-{
-todos &&
-todos.length > 0 ?
-(
-todos.map(todo => {
-return (
-<li key={todo._id} onClick={() => deleteTodo(todo._id)}>{todo.action}</li>
-)
-})
-)
-:
-(
-<li>No todo(s) left</li>
-)
-}
-</ul>
-)
-}
-
-export default ListTodo
-```
-
-- In the Todo.js file, write the following code
-
-```
-import React, {Component} from 'react';
-import axios from 'axios';
-
-import Input from './Input';
-import ListTodo from './ListTodo';
-
-class Todo extends Component {
-
-state = {
-todos: []
-}
-
-componentDidMount(){
-this.getTodos();
-}
-
-getTodos = () => {
-axios.get('/api/todos')
-.then(res => {
-if(res.data){
-this.setState({
-todos: res.data
-})
-}
-})
-.catch(err => console.log(err))
-}
-
-deleteTodo = (id) => {
-
-    axios.delete(`/api/todos/${id}`)
-      .then(res => {
-        if(res.data){
-          this.getTodos()
-        }
-      })
-      .catch(err => console.log(err))
-
-}
-
-render() {
-let { todos } = this.state;
-
-    return(
-      <div>
-        <h1>My Todo(s)</h1>
-        <Input getTodos={this.getTodos}/>
-        <ListTodo todos={todos} deleteTodo={this.deleteTodo}/>
-      </div>
-    )
-
-}
-}
-
-export default Todo;
-```
-
-Adjust the **App.js**
-
-- Move to the src folder
+- Access the Books App over the browser
   ```
-  cd ..
+  http://public-ip-address:3300
+  ![Books App webpage](images/books-app.png)
   ```
-- In the src folder, run
-  ```
-  vi App.js
-  ```
-- Copy and paste the code below into it
-
-```
-import React from 'react';
-
-import Todo from './components/Todo';
-import './App.css';
-
-const App = () => {
-return (
-<div className="App">
-<Todo />
-</div>
-);
-}
-
-export default App;
-```
-
-Save and exit the editor.
-
-- In the src directory open the App.css
-
-  ```
-  vi App.css
-  ```
-
-- Paste the following code into App.css:
-
-```
-.App {
-text-align: center;
-font-size: calc(10px + 2vmin);
-width: 60%;
-margin-left: auto;
-margin-right: auto;
-}
-
-input {
-height: 40px;
-width: 50%;
-border: none;
-border-bottom: 2px #101113 solid;
-background: none;
-font-size: 1.5rem;
-color: #787a80;
-}
-
-input:focus {
-outline: none;
-}
-
-button {
-width: 25%;
-height: 45px;
-border: none;
-margin-left: 10px;
-font-size: 25px;
-background: #101113;
-border-radius: 5px;
-color: #787a80;
-cursor: pointer;
-}
-
-button:focus {
-outline: none;
-}
-
-ul {
-list-style: none;
-text-align: left;
-padding: 15px;
-background: #171a1f;
-border-radius: 5px;
-}
-
-li {
-padding: 15px;
-font-size: 1.5rem;
-margin-bottom: 15px;
-background: #282c34;
-border-radius: 5px;
-overflow-wrap: break-word;
-cursor: pointer;
-}
-
-@media only screen and (min-width: 300px) {
-.App {
-width: 80%;
-}
-
-input {
-width: 100%
-}
-
-button {
-width: 100%;
-margin-top: 15px;
-margin-left: 0;
-}
-}
-
-@media only screen and (min-width: 640px) {
-.App {
-width: 60%;
-}
-
-input {
-width: 50%;
-}
-
-button {
-width: 30%;
-margin-left: 10px;
-margin-top: 0;
-}
-}
-```
-
-- Save and exit
-
-- In the src directory open the index.css
-  ```
-  vim index.css
-  ```
-- Copy and paste the code below:
-
-```
-body {
-margin: 0;
-padding: 0;
-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-"Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-sans-serif;
--webkit-font-smoothing: antialiased;
--moz-osx-font-smoothing: grayscale;
-box-sizing: border-box;
-background-color: #282c34;
-color: #787a80;
-}
-
-code {
-font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-monospace;
-}
-```
-
-- Go to the todo directory
-  ```
-  cd ../../
-  ```
-- In the Todo directory, run
-
-  ```
-  npm run dev
-  ```
-
-  ![npm run dev](images/npm-run-dev-2.png "npm run dev")
-
-- Access the React app through port 3000 on the public-ip-address
-
-```
-http://public-ip-address:3000
-```
-
-![React App](images/react-app-2.png "React App")
