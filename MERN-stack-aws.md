@@ -418,6 +418,96 @@ The whole purpose of adding the proxy configuration in number 3 above is to make
   ![React App](images/react-app.png "React App")
 
 ### Creating React Components
+The App will have two stateful components and one stateless component
+
+- From the Todo directory run
+  ```
+  cd client
+  ```
+- Change to the src directory
+  ```
+  cd src
+  ```
+- In the src directory create another directory called components
+  ```
+  mkdir components
+  ```
+- change to the components directory
+  ```
+  cd components
+  ```
+- In components directory create three files Input.js, ListTodo.js and Todo.js.
+  ```
+  touch Input.js ListTodo.js Todo.js
+  ```
+- Open Input.js file
+  ```
+  vi Input.js
+  ```
+- Copy and paste the codes below
+```
+import React, { Component } from 'react';
+import axios from 'axios';
+
+class Input extends Component {
+
+state = {
+action: ""
+}
+
+addTodo = () => {
+const task = {action: this.state.action}
+
+    if(task.action && task.action.length > 0){
+      axios.post('/api/todos', task)
+        .then(res => {
+          if(res.data){
+            this.props.getTodos();
+            this.setState({action: ""})
+          }
+        })
+        .catch(err => console.log(err))
+    }else {
+      console.log('input field required')
+    }
+
+}
+
+handleChange = (e) => {
+this.setState({
+action: e.target.value
+})
+}
+
+render() {
+let { action } = this.state;
+return (
+<div>
+<input type="text" onChange={this.handleChange} value={action} />
+<button onClick={this.addTodo}>add todo</button>
+</div>
+)
+}
+}
+
+export default Input
+```
+To make use of **Axios**, which is a Promise based HTTP client for the browser and node.js, cd into client directory client and run yarn add axios or npm install axios.
+
+- Go to the src folder
+  ```
+  cd ..
+  ```
+- Go to clients folder
+  ```
+  cd ..
+  ```
+- Install Axios
+  ``
+  npm install axios
+  ```
+  
+
 
   
   
