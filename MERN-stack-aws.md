@@ -369,11 +369,14 @@ console.log(`Server running on port ${port}`)
   ![Postman DELETE](images/api-delete.png "Postman DELETE")
 
 ## Step 2 - Frontend Creation
+
 - Use the **create-react-app** command to scaffold the app, in the Todo directory
   ```
   npx create-react-app client
   ```
+
 ### Running React App
+
 - Install **concurrently** used to run more than one command simultaneously from the same terminal
   ```
   npm install concurrently --save-dev
@@ -391,26 +394,35 @@ console.log(`Server running on port ${port}`)
   },
   ```
   ![Package.Json](images/package-json.jpg "package.json")
-### Configure proxy in jason.package
-1. Change directory to 'client'
-  ```
-  cd client
-  ```
-2. Open the package.json file
-  ```
-  vi package.json
-  ```
-3. Add the key value pair in the package.json file **"proxy": "http://localhost:5000"**.
-The whole purpose of adding the proxy configuration in number 3 above is to make it possible to access the application directly from the browser by simply calling the server url like http://localhost:5000 rather than always including the entire path like http://localhost:5000/api/todos
 
-- In the **Todo** directory, run: 
+### Configure proxy in jason.package
+
+1. Change directory to 'client'
+
+```
+cd client
+```
+
+2. Open the package.json file
+
+```
+vi package.json
+```
+
+3. Add the key value pair in the package.json file **"proxy": "http://localhost:5000"**.
+   The whole purpose of adding the proxy configuration in number 3 above is to make it possible to access the application directly from the browser by simply calling the server url like http://localhost:5000 rather than always including the entire path like http://localhost:5000/api/todos
+
+- In the **Todo** directory, run:
+
   ```
   npm run dev
   ```
+
   ![npn run dev](images/npn-run-dev.png "npn run dev")
 
   The app should open and start running on localhost:3000
   NOTE: Open port 3000 on the AWS EC2 security group to be able to access the service.
+
 - Access the React app through port 3000 on the public-ip-address
   ```
   http://public-ip-address:3000
@@ -418,6 +430,7 @@ The whole purpose of adding the proxy configuration in number 3 above is to make
   ![React App](images/react-app.png "React App")
 
 ### Creating React Components
+
 The App will have two stateful components and one stateless component
 
 - From the Todo directory run
@@ -445,6 +458,7 @@ The App will have two stateful components and one stateless component
   vi Input.js
   ```
 - Copy and paste the codes below
+
 ```
 import React, { Component } from 'react';
 import axios from 'axios';
@@ -492,6 +506,7 @@ return (
 
 export default Input
 ```
+
 To make use of **Axios**, which is a Promise based HTTP client for the browser and node.js, cd into client directory client and run yarn add axios or npm install axios.
 
 - Go to the src folder
@@ -505,31 +520,25 @@ To make use of **Axios**, which is a Promise based HTTP client for the browser a
 - Install Axios
   ``
   npm install axios
+
   ```
-  
 
-
-  
-  
-
-  
-
-
-
-
-
+  ```
 
 - Go to 'components' directory
+
   ```
   cd src/components
   ```
 
-- Create the ListTodo.js
- ```
- vi ListTodo.js
- ```
+- Open the ListTodo.js file
 
-- In the ListTodo.js copy and paste the codes below
+```
+vi ListTodo.js
+```
+
+- In the **ListTodo.js** copy and paste the codes below
+
 ```
 import React from 'react';
 
@@ -552,317 +561,246 @@ return (
 <li>No todo(s) left</li>
 )
 }
-</ul&...
+</ul>
+)
+}
+
+export default ListTodo
 ```
 
-- Open inbound connections to port 80 from EC2 security group configuration
-  ![Open Port 80](images/inbound-connections.png "Allow inbound connection on port 80")
-
-- Access the webpage locally
+- In the Todo.js file, write the following code
 
 ```
+import React, {Component} from 'react';
+import axios from 'axios';
 
-curl http://localhost:80
+import Input from './Input';
+import ListTodo from './ListTodo';
 
-```
+class Todo extends Component {
 
-![curl localhost](images/curl-localhost.png "curl localhost")
+state = {
+todos: []
+}
 
-- Open a browser and point to the url
+componentDidMount(){
+this.getTodos();
+}
 
-```
+getTodos = () => {
+axios.get('/api/todos')
+.then(res => {
+if(res.data){
+this.setState({
+todos: res.data
+})
+}
+})
+.catch(err => console.log(err))
+}
 
-http://public-ip-address
+deleteTodo = (id) => {
 
-```
-
-![Nginx webpage](images/webpage-nginx.png "nginx webpage")
-
-## Step 2 - Install MySQL
-
-- Use 'apt' to install mysql
-
-```
-
-sudo apt install mysql-server -y
-
-```
-
-- Test if you are able to login
-
-```
-
-sudo mysql
-
-```
-
-![Connect to mysql](images/mysql-prompt.png "Connect to mysql")
-
-- To exist mysql type 'exit':
-
-```
-
-mysql> exit
-
-```
-
-## Step 3 - Install PHP
-
-Unlike Apache that embeds the PHP interpreter in each request, Nginx requires an external program to handle PHP processing and act as a bridge between the PHP interpreter itself and the web server. **php-fpm** processes PHP requests. And **php-mysql** a PHP module allows PHP to communicate with MySQL-based databases.
-
-- Install PHP packages
-
-```
-
-sudo apt install php-fpm php-mysql -y
-
-```
-
-- After install, confirm PHP version
-
-```
-
-php -v
-
-```
-
-![PHP Version](images/php-version.png "PHP Version")
-
-## Step 4 - Configure Nginx to use PHP Processor
-
-On Ubuntu 20.04, Nginx has one server block enabled by default and is configured to serve documents out of a directory at **/var/www/html**. While this works well for a single site, it can become difficult to manage if you are hosting multiple sites. Instead of modifying **/var/www/html**, we’ll create a directory structure within **/var/www** for the your_domain website, leaving **/var/www/html** in place as the default directory to be served if a client request does not match any other sites.
-
-- Create the root web directory for your_domain
-
-```
-
-sudo mkdir /var/www/projectlemp
-
-```
-
-- Assign directory ownership to system user
-
-```
-
-sudo chown -R $USER:$USER /var/www/projectlamp
-
-```
-
-- create a new configuration file in Nginx\'s **sites-available** directory
-
-```
-
-sudo vi /etc/nginx/sites-available/projectlemp.conf
-
-```
-
-- Paste the configurations into the file
-
-```
-
-server {
-listen 80;
-server_name projectlemp www.projectlemp;
-root /var/www/projectlemp;
-
-    index index.html index.htm index.php;
-
-    location / {
-        try_files $uri $uri/ =404;
-    }
-
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
-     }
-
-    location ~ /\.ht {
-        deny all;
-    }
+    axios.delete(`/api/todos/${id}`)
+      .then(res => {
+        if(res.data){
+          this.getTodos()
+        }
+      })
+      .catch(err => console.log(err))
 
 }
 
+render() {
+let { todos } = this.state;
+
+    return(
+      <div>
+        <h1>My Todo(s)</h1>
+        <Input getTodos={this.getTodos}/>
+        <ListTodo todos={todos} deleteTodo={this.deleteTodo}/>
+      </div>
+    )
+
+}
+}
+
+export default Todo;
+```
+
+Adjust the **App.js**
+
+- Move to the src folder
+  ```
+  cd ..
+  ```
+- In the src folder, run
+  ```
+  vi App.js
+  ```
+- Copy and paste the code below into it
+
+```
+import React from 'react';
+
+import Todo from './components/Todo';
+import './App.css';
+
+const App = () => {
+return (
+<div className="App">
+<Todo />
+</div>
+);
+}
+
+export default App;
+```
+
+Save and exit the editor.
+
+- In the src directory open the App.css
+
+  ```
+  vi App.css
+  ```
+
+- Paste the following code into App.css:
+
+```
+.App {
+text-align: center;
+font-size: calc(10px + 2vmin);
+width: 60%;
+margin-left: auto;
+margin-right: auto;
+}
+
+input {
+height: 40px;
+width: 50%;
+border: none;
+border-bottom: 2px #101113 solid;
+background: none;
+font-size: 1.5rem;
+color: #787a80;
+}
+
+input:focus {
+outline: none;
+}
+
+button {
+width: 25%;
+height: 45px;
+border: none;
+margin-left: 10px;
+font-size: 25px;
+background: #101113;
+border-radius: 5px;
+color: #787a80;
+cursor: pointer;
+}
+
+button:focus {
+outline: none;
+}
+
+ul {
+list-style: none;
+text-align: left;
+padding: 15px;
+background: #171a1f;
+border-radius: 5px;
+}
+
+li {
+padding: 15px;
+font-size: 1.5rem;
+margin-bottom: 15px;
+background: #282c34;
+border-radius: 5px;
+overflow-wrap: break-word;
+cursor: pointer;
+}
+
+@media only screen and (min-width: 300px) {
+.App {
+width: 80%;
+}
+
+input {
+width: 100%
+}
+
+button {
+width: 100%;
+margin-top: 15px;
+margin-left: 0;
+}
+}
+
+@media only screen and (min-width: 640px) {
+.App {
+width: 60%;
+}
+
+input {
+width: 50%;
+}
+
+button {
+width: 30%;
+margin-left: 10px;
+margin-top: 0;
+}
+}
 ```
 
 - Save and exit
-- Activate the configuration by linking to the config file from Nginx\'s **sites-enabled** directory
+
+- In the src directory open the index.css
+  ```
+  vim index.css
+  ```
+- Copy and paste the code below:
 
 ```
+body {
+margin: 0;
+padding: 0;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+"Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+sans-serif;
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+box-sizing: border-box;
+background-color: #282c34;
+color: #787a80;
+}
 
-sudo ln -s /etc/nginx/sites-available/projectlemp /etc/nginx/sites-enabled/
-
+code {
+font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+monospace;
+}
 ```
 
-This will tell Nginx to use the configuration next time it is reloaded.
+- Go to the todo directory
+  ```
+  cd ../../
+  ```
+- In the Todo directory, run
 
-- Check that the configuration file does not contain any errors
+  ```
+  npm run dev
+  ```
+
+  ![npm run dev](images/npm-run-dev-2.png "npm run dev")
+
+- Access the React app through port 3000 on the public-ip-address
 
 ```
-
-sudo nginx -t
-
+http://public-ip-address:3000
 ```
 
-![Nginx test](images/nginx-test.png "nginx -t")
-
-- Disable default Nginx host that is currently configured to listen on port 80
-
-```
-
-sudo unlink /etc/nginx/sites-enabled/default
-
-```
-
-- Reload Nginx
-
-```
-
-```
-
-- Create an index file in the web directory
-
-```
-
-sudo echo 'Hello LEMP from hostname' $(curl -s http://169.254.169.254/latest/meta-data/public-hostname) 'with public IP' $(curl -s http://169.254.169.254/latest/meta-data/public-ipv4) > /var/www/projectlemp/index.html
-
-```
-
-- Access the website on your browser
-
-```
-
-https://public-ip-address:80
-
-```
-
-![Website Image](images/website-nginx.png "Website Image")
-
-## Step 5 - Testing PHP with Nginx
-
-- create a test PHP file in the document root
-
-```
-
-sudo vim /var/www/projectlemp/info.php
-
-```
-
-- Add the following text, which is valid PHP code that will return information about the server.
-
-```
-
-  <?php
-  phpinfo();
-```
-
-- Save and exit
-- Visit the webpage through the browser
-  ```
-  http://`server_domain_or_IP`/info.php
-  ```
-  ![phpinfo page](images/nginx-php.png "phpinfo page")
-
-## Retrieving data from MySQL database with PHP
-
-Create a test database (DB) with simple "To do list" and configure access to it, so the Nginx website would be able to query data from the DB and display it
-
-- Create a new user with the mysql_native_password authentication method in order to be able to connect to the MySQL database from PHP
-- Connect to the database
-
-```
-sudo mysql
-```
-
-![Connect to database as root user](images/mysql-prompt.png "connect to database")
-
-- Create a new database
-  ```
-  CREATE DATABASE example_database;
-  ```
-- Create a new user
-  ```
-  CREATE USER 'example_user'@'%' IDENTIFIED WITH mysql_native_password BY 'password';
-  ```
-- Grant the user permission over the example_database database
-  ```
-  GRANT ALL ON example_database.* TO 'example_user'@'%';
-  ```
-- Exit mysql shell
-  ```
-  exit
-  ```
-- Logon to mysql console using the new user credentials
-  ```
-  mysql -u example_user -p
-  ```
-  ![logon to mysql as new user](images/mysql-login.png "mysql new user login")
-- Confirm user has access to database
-
-  ```
-  SHOW DATABASES;
-  ```
-
-  ![Show Databases](images/show-database.png "Show Databases")
-
-- Create a test table called **todo_list**
-  ```
-  CREATE TABLE example_database.todo_list (
-    item_id INT AUTO_INCREMENT,
-    content VARCHAR(255),
-    PRIMARY KEY(item_id)
-  );
-  ```
-- Insert a few rows of content in the test table
-
-  ```
-  INSERT INTO example_database.todo_list (content) VALUES ("My first important item");
-  ```
-
-- Confirm that the data was successfully saved to the table
-
-  ```
-  SELECT * FROM example_database.todo_list;
-  ```
-
-  ![MySQL Select](images/mysql-select.png "MySQL SELECT")
-
-- Exit mysql console
-  ```
-  exit
-  ```
-- Create a PHP script that will connect to MySQL and query the contents
-
-  ```
-  vi /var/www/projectlemp/todo_list.php
-  ```
-
-  The following PHP script connects to the MySQL database and queries for the content of the todo_list table, displays the results in a list
-
-  Copy this content into the todo_list.php script
-
-  ```
-  <?php
-  $user = "example_user";
-  $password = "password";
-  $database = "example_database";
-  $table = "todo_list";
-
-  try {
-    $db = new PDO("mysql:host=localhost;dbname=$database", $user, $password);
-    echo "<h2>TODO</h2><ol>";
-  foreach($db->query("SELECT content FROM $table") as $row) {
-  echo "<li>" . $row['content'] . "</li>";
-  }
-  echo "</ol>";
-  } catch (PDOException $e) {
-    print "Error!: " . $e->getMessage() . "<br/>";
-    die();
-  }
-  ```
-
-- Save and quit
-- Access the page through the web browser
-  ```
-  http://<Public_domain_or_IP>/todo_list.php
-  ```
-  ![Todo list](images/todo-list.png "Todo List")
+![React App](images/react-app-2.png "React App")
