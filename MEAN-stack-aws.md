@@ -353,10 +353,10 @@ curl -s http://localhost:3300
 ![curl localhost:3300](images/curl-localhost-2.png "curl localhost:3300")
 
 Open TCP port 3300 in the Security tab of the AWS EC2 Instance.
-![TCP port 3300](images/port-3000.png "TCP port 3300")
+![TCP port 3300](images/port-3300.png "TCP port 3300")
 
 - Access the Books App over the browser
   ```
   http://public-ip-address:3300
-  ![Books App webpage](images/books-app.png)
   ```
+  ![Books App webpage](images/books-app.png "Books App webpage")
