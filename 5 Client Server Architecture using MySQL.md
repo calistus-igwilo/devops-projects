@@ -58,3 +58,24 @@ In their communication, each machine has its own role: the machine sending reque
 
 MySQL server uses TCP port 3306 by default, so you will have to open it by creating a new entry in **Inbound rules** in **mysql server** Security Groups. For extra security, allow access only to the specific local IP address of the **mysql client**.
 ![TCP Port 3306](images/tcp-3306.png "TCP Port 3306")
+
+## Step 4 - Configure MySQL server to allow connections from remote hosts.
+
+    ```
+    sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
+    ```
+
+Replace **127.0.0.1** to **0.0.0.0** like this:
+![Mysql Bind](images/mysql-bind.png "MySQL Bind")
+
+## Step 6 - Connect to mysql server from mysql client
+
+```
+mysql -h 3.92.181.197 -u calistus -pcalistus
+```
+
+```
+show databases;
+```
+
+![mysql -h ipaddr -u user -ppassword](images/mysql-h-u-p.png "Connect to mysql remotely")
