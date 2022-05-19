@@ -132,7 +132,32 @@ This project consists of two parts:
   ```
   sudo rsync -av /home/recovery/logs/* /var/log
   ```
-- Update **/etc/fstab** file so that the mount configuration will persist after restart of the server.
+### Update **/etc/fstab** file so that the mount configuration will persist after restart of the server.
+- The UUID of the device will be used to update the **/etc/fstab** file;
+  ```
+  sudo blkid
+  ```
+  ![sudo blkid](images/blkid.png "sudo blkid")
+
+- Update **/etc/fstab** using corresponding UUID without the quotes
+  ```
+  sudo vi /etc/fstab
+  ```
+  ![sudo vi /etc/fstab](images/fstab.png "sudo vi /etc/fstab")
+
+- Test the configuration and reload the daemon
+  ```
+  sudo mount -a
+  sudo systemctl daemon-reload
+  ```
+- Verify the setup by running **df -h**
+  ```
+  df -h
+  ```
+  ![df -h](images/df-h-2.png "df -h")
+  
+
+
 
       ```
       Server A name - mysql server
