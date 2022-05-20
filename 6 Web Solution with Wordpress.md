@@ -132,17 +132,23 @@ This project consists of two parts:
   ```
   sudo rsync -av /home/recovery/logs/* /var/log
   ```
+
 ### Update **/etc/fstab** file so that the mount configuration will persist after restart of the server.
+
 - The UUID of the device will be used to update the **/etc/fstab** file;
+
   ```
   sudo blkid
   ```
+
   ![sudo blkid](images/blkid.png "sudo blkid")
 
 - Update **/etc/fstab** using corresponding UUID without the quotes
+
   ```
   sudo vi /etc/fstab
   ```
+
   ![sudo vi /etc/fstab](images/fstab.png "sudo vi /etc/fstab")
 
 - Test the configuration and reload the daemon
@@ -157,12 +163,13 @@ This project consists of two parts:
   ![df -h](images/df-h-2.png "df -h")
 
 ## Step 2 — Prepare the Database Server
+
 - Launch a second RedHat EC2 instance that will have a role - **DB Server**
 - Repeat the same steps as for the Web Server, but instead of apps-lv create db-lv and mount it to /db directory instead of /var/www/html/
   ![df -h](images/df-h-3.png "df -h")
 
-
 ## Step 3 — Install WordPress on the Web Server EC2
+
 - Update the repository
   ```
   sudo yum -y update
@@ -186,7 +193,7 @@ This project consists of two parts:
   sudo yum install php php-opcache php-gd php-curl php-mysqlnd
   sudo systemctl start php-fpm
   sudo systemctl enable php-fpm
-  setsebool -P httpd_execmem 1
+  sudo setsebool -P httpd_execmem 1
   ```
 - Restart Apache
   ```
@@ -199,8 +206,8 @@ This project consists of two parts:
   sudo wget http://wordpress.org/latest.tar.gz
   sudo tar xzvf latest.tar.gz
   sudo rm -rf latest.tar.gz
-  cp wordpress/wp-config-sample.php wordpress/wp-config.php
-  cp -R wordpress /var/www/html/
+  sudo cp wordpress/wp-config-sample.php wordpress/wp-config.php
+  sudo cp -R wordpress /var/www/html/
   ```
 - Configure SELinux Policies
   ```
@@ -209,76 +216,49 @@ This project consists of two parts:
   sudo setsebool -P httpd_can_network_connect=1
   ```
 
+## Step 4 — Install MySQL on the DB Server EC2
 
+```
+sudo yum update
+sudo yum install mysql-server
+```
 
-      ```
-      Server A name - mysql server
-      Server B name - mysql client
-      ```
-
-  ![ec2 instances](images/ec2-instances.png "ec2 instances")
-
-## Step 1 - Install MySQL server software on **mysql server**
-
-- Use 'apt' to install mysql server
+- Verify that the service is up and running by using sudo systemctl status mysqld, if it is not running, restart the service and enable it so it will be running even after reboot:
   ```
-  sudo apt install mysql-server
-  ```
-- Secure mysql Server
-
-  ```
-  sudo mysql
+  sudo systemctl restart mysqld
+  sudo systemctl enable mysqld
   ```
 
-  ```
-  ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'SetRootPasswordHere';
-  ```
+## Step 5 — Configure DB to work with WordPress
 
+```
+sudo mysql
+```
+
+- CREATE DATABASE wordpress
   ```
+  CREATE USER `myuser`@`<Web-Server-Private-IP-Address>` IDENTIFIED BY 'mypass';
+  GRANT ALL ON wordpress.* TO 'myuser'@'<Web-Server-Private-IP-Address>';
+  FLUSH PRIVILEGES;
+  SHOW DATABASES;
   exit
   ```
 
+## Step 6 — Configure WordPress to connect to remote database.
+
+Open MySQL port 3306 on DB Server EC2. For extra security, allow access to the DB server ONLY from your Web Server's IP address, so in the Inbound Rule configuration specify source as /32
+![tcp port 3306](images/tcp-3306-3.png "tcp port 3306")
+
+- Install MySQL client and test that it can connect from the Web Server to the DB server by using mysql-client
   ```
-  sudo mysql_secure_installation
+  sudo yum install mysql
+  sudo mysql -u admin -p -h <DB-Server-Private-IP-address>
   ```
+- Verify if it can successfully execute SHOW DATABASES;
+  ![mysql login](images/mysql-login-2.png "mysql login")
 
-  Follow the prompts to apply desired security.
-  ![mysql_secure_installation](images/mysql-secure.png "mysql_secure_installtion")
+- Change permissions and configuration so Apache could use WordPress:
+  Enable TCP port 80 in Inbound Rules configuration for your Web Server EC2 (enable from everywhere 0.0.0.0/0 )
+  ![TCP port 80 allow](images/tcp-80.png "tcp port 80 allow")
 
-- Exit
-  ```
-  exit
-  ```
-
-## Step 2 - Install MySQL client on **mysql client**
-
-- Use 'apt' to install mysql client
-  ```
-  sudo apt install mysql-client
-  ```
-
-## Step 3 - Open Port 3306 on **mysql server**
-
-MySQL server uses TCP port 3306 by default, so you will have to open it by creating a new entry in **Inbound rules** in **mysql server** Security Groups. For extra security, allow access only to the specific local IP address of the **mysql client**.
-![TCP Port 3306](images/tcp-3306.png "TCP Port 3306")
-
-## Step 4 - Configure MySQL server to allow connections from remote hosts.
-
-    ```
-    sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
-    ```
-
-Replace **127.0.0.1** to **0.0.0.0** like this:
-![Mysql Bind](images/mysql-bind.png "MySQL Bind")
-
-## Step 6 - Connect to mysql server from mysql client
-
-```
-mysql -h 3.92.181.197 -u calistus -pcalistus
-```
-
-```
-show databases;
-```
-
-![mysql -h ipaddr -u user -ppassword](images/mysql-h-u-p.png "Connect to mysql remotely")
+- Try to access from a browser the link to the WordPress http://<Web-Server-Public-IP-Address>/wordpress/
